@@ -42,9 +42,8 @@
 
 const char progName[] = "example_sph_5";
 SASCompoundHeap_t compoundHeap;
-SASSimpleHeap_t simpleHeap;
 void
-Update_Project (SPHContext_t context, int count,
+Update_Project (SPHContext_t context, int count, void *lastobj,
 		SASStringBTree_t btree, SASIndex_t index);
 
 void Print_Project (char *name, int count);
@@ -90,6 +89,7 @@ char indexes[2][10] = { "sasindex", "sasstring" };
 SASSimpleHeap_t *
 CreateHeap ()
 {
+  SASSimpleHeap_t simpleHeap;
   unsigned long blockSize = block__Size64K;
   compoundHeap = SASCompoundHeapCreate (blockSize);
   if (!compoundHeap)
@@ -221,6 +221,7 @@ main ()
 {
   SPHContext_t context, context1;
   SASIndexKey_t key;
+  SASSimpleHeap_t simpleHeap;
   SASStringBTree_t btree;
   SASIndex_t index;
   int i, rc;
@@ -294,8 +295,9 @@ main ()
 
       /* Fill in project information */
       simpleHeap = CreateHeap ();
-      Update_Project (context, 0, btree, index);
-      Update_Project (context1, 10, btree, index);
+      Update_Project (context, 0, simpleHeap, btree, index);
+      simpleHeap = SASCompoundHeapNearAlloc (compoundHeap);
+      Update_Project (context1, 10, simpleHeap, btree, index);
     }
 
   /* Examples to access persistent data */
@@ -328,29 +330,30 @@ main ()
 
 /* Function to update  project info */
 void
-Update_Project (SPHContext_t context, int count,
+Update_Project (SPHContext_t context, int count, void *lastobj,
 		SASStringBTree_t btree, SASIndex_t index)
 {
   int i, rc;
+  SASSimpleHeap_t simpleHeap;
   struct emp_info *emp_info_t[count];
-
   for (i = count; i < count + 10; i++)
     {
       emp_info_t[i] =
-	(struct emp_info *) SASSimpleHeapAlloc (simpleHeap,
+	(struct emp_info *) SASSimpleHeapNearAlloc (lastobj,
 						sizeof (struct emp_info));
       if (emp_info_t[i] == NULL)
 	{
 	  /* Expand */
-	  simpleHeap = SASCompoundHeapNearAlloc (compoundHeap);
+	  simpleHeap = SASCompoundHeapNearAlloc (lastobj);
 	  if (!simpleHeap)
 	    {
 	      fprintf (stderr, "SASCompoundHeapNearAlloc(%p)", compoundHeap);
 	      SASCleanUp ();
 	      exit (EXIT_FAILURE);
 	    }
+          lastobj = simpleHeap;
 	  emp_info_t[i] =
-	    (struct emp_info *) SASSimpleHeapAlloc (simpleHeap,
+	    (struct emp_info *) SASSimpleHeapNearAlloc (simpleHeap,
 						    sizeof (struct emp_info));
 	  if (emp_info_t[i] == NULL)
 	    {
@@ -373,6 +376,7 @@ Update_Project (SPHContext_t context, int count,
       sasindex_add_element (index, phone[i], names[i]);
       sasbtree_add_element (btree, names[i], address[i]);
       sasbtree_add_element (btree, address[i], bday[i]);
+
     }
 }
 
