@@ -292,11 +292,16 @@ main ()
 	  SASCleanUp ();
 	  exit (1);
 	}
-
-      /* Fill in project information */
+      /* Allocate a new simple heap from compound heap */
       simpleHeap = CreateHeap ();
+      /* Fill in project information */
       Update_Project (context, 0, simpleHeap, btree, index);
+      /* 
+       * Allocate a new simple heap from same compound heap.
+       * This  insures that ProjectA and ProjectB are separated
+       */
       simpleHeap = SASCompoundHeapNearAlloc (compoundHeap);
+      /* Fill in project information */
       Update_Project (context1, 10, simpleHeap, btree, index);
     }
 
@@ -338,12 +343,20 @@ Update_Project (SPHContext_t context, int count, void *lastobj,
   struct emp_info *emp_info_t[count];
   for (i = count; i < count + 10; i++)
     {
+      /* 
+       * Allocate a data block from "the" SASSimpleHeap_t
+       * that contains the address lastdata. This ensures
+       * objects from same project are grouped together
+       */
       emp_info_t[i] =
 	(struct emp_info *) SASSimpleHeapNearAlloc (lastobj,
 						sizeof (struct emp_info));
       if (emp_info_t[i] == NULL)
 	{
-	  /* Expand */
+          /* 
+          * Expand:Allocate a data block from same SASCompoundHeap_t
+          * that contains the address lastdata
+          */
 	  simpleHeap = SASCompoundHeapNearAlloc (lastobj);
 	  if (!simpleHeap)
 	    {
