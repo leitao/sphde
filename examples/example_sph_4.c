@@ -40,7 +40,7 @@
  * searches over the Person records to allow search on phone number birthday, etc.
  */
 
-const char progName[] = "example_sph_5";
+const char progName[] = "example_sph_4";
 SASCompoundHeap_t compoundHeap;
 void
 Update_Project (SPHContext_t context, int count, void *lastobj,
@@ -263,11 +263,11 @@ main ()
 
       /* Add indexes info to context */
       /* This will be retrieved later for searching */
-      index = SASIndexCreate (block__Size256K);
+      index = SASIndexCreate (block__Size64K);
       if (index == 0)
 	{
 	  fprintf (stderr, "%s: SASIndexCreate(%li) failed\n", progName,
-		   block__Size256K);
+		   block__Size64K);
 	  exit (EXIT_FAILURE);
 	}
       rc = SPHContextAddName (context, indexes[0], (SASIndex_t *) index);
@@ -277,11 +277,11 @@ main ()
 	  SASCleanUp ();
 	  exit (1);
 	}
-      btree = SASStringBTreeCreate (block__Size256K);
+      btree = SASStringBTreeCreate (block__Size64K);
       if (btree == 0)
 	{
 	  fprintf (stderr, "%s: error: SASStringBTreeCreate(%li) failed\n",
-		   progName, block__Size256K);
+		   progName, block__Size64K);
 	  exit (EXIT_FAILURE);
 	}
       rc =
