@@ -355,7 +355,7 @@ Update_Project (SPHContext_t context, int count, void *lastobj,
 	{
           /* 
           * Expand:Allocate a data block from same SASCompoundHeap_t
-          * that contains the address lastdata
+          * but a different SASSimpleHeap_t, that contains the address lastdata
           */
 	  simpleHeap = SASCompoundHeapNearAlloc (lastobj);
 	  if (!simpleHeap)
